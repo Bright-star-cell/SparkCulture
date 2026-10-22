@@ -1,23 +1,203 @@
 # SparkCulture
 
-SparkCulture discovers cross-vertical partnership ideas from Qloo's taste graph. The Next.js client calls a FastAPI service; only the backend communicates with Qloo and holds `QLOO_API_KEY`.
+**Culture is the signal. Collaboration is the outcome.**
 
-## Run in Codespaces
+SparkCulture helps creative teams turn a film, game, podcast, artist, or brand into a starting point for unexpected partnerships. Enter an IP, resolve it against Qloo, and explore taste-aligned partners across **music, fashion, and dining**—with a collaboration concept, a product blueprint, and a transparent planning scenario for each match.
 
-1. Reopen the repository in the configured dev container.
-2. Copy `backend/.env.example` to `backend/.env` and add your hackathon `QLOO_API_KEY`.
-3. Start the backend and frontend in separate terminals:
+The experience is built for fast exploration: choose a case study for an immediate analysis, or submit your own title and optional context. Qloo supplies entity discovery and cross-category recommendations; SparkCulture turns those results into an actionable partnership brief.
+
+## The experience
+
+1. **Start with an IP.** Enter its title and choose a supported home vertical. Add optional context to search for relevant Qloo taste tags.
+2. **Resolve the signal.** The backend finds the source entity and, when context is provided, resolves tags through Qloo.
+3. **Explore adjacent categories.** Qloo Insights is queried for artists, brands, and places—our music, fashion, and dining partner categories.
+4. **Turn matches into concepts.** Each returned match includes a collaboration idea, product mockup description, and an illustrative financial pro forma.
+5. **Inspect the evidence.** The interface distinguishes a Qloo affinity score from a score based on the match's position in the returned results.
+
+## Quick start
+
+### GitHub Codespaces
+
+1. Open the repository in Codespaces and let the configured dev container finish creating.
+2. In a terminal, create the backend environment file and add your Qloo hackathon key:
 
    ```bash
-   cd backend && python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+   cp backend/.env.example backend/.env
    ```
+
+   Set `QLOO_API_KEY` in `backend/.env`. **Never put this key in a `NEXT_PUBLIC_*` variable, frontend file, or commit.**
+3. Start FastAPI in one terminal:
 
    ```bash
-   cd frontend && npm run dev
+   cd backend
+   python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
    ```
 
-4. Open forwarded port 3000. The API listens on port 8000.
+4. Start Next.js in another terminal:
 
-The API accepts `title`, `vertical`, and an optional `description` at `POST /api/analyze-ip`. The browser calls a same-origin Next.js rewrite, which forwards API requests to FastAPI at `BACKEND_INTERNAL_URL` (default `http://127.0.0.1:8000`). Supported source verticals are `video_game`, `movie`, `tv_show`, `podcast`, `artist`, `brand`, and `book`. When a description is supplied, its tags are resolved through Qloo before cross-vertical affinity queries. Pro forma amounts are explicit planning assumptions, not Qloo data or a financial forecast.
+   ```bash
+   cd frontend
+   npm run dev
+   ```
 
-Set `FRONTEND_ORIGIN` to the frontend's browser origin when deploying. Both Qloo base URL environment variables are intentionally restricted to the hackathon host.
+5. Open forwarded port **3000**. Select a case study to run it immediately, or enter your own IP.
+
+The dev container provisions Python 3.11 and Node.js 20, installs frontend and backend dependencies, and forwards ports 3000 and 8000.
+
+### Local development
+
+Requirements: Python 3.11+, Node.js 20+, npm, and a Qloo hackathon API key.
+
+```bash
+cp backend/.env.example backend/.env
+# Add your QLOO_API_KEY to backend/.env
+python -m venv .venv
+```
+
+Activate `.venv` for your shell, then install and start the services in separate terminals:
+
+```bash
+python -m pip install -r backend/requirements.txt
+cd backend
+python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). The frontend calls `/api/analyze-ip` on its own origin; Next.js forwards `/api/*` to `BACKEND_INTERNAL_URL`, which defaults to `http://127.0.0.1:8000`.
+
+## What the analysis returns
+
+For each partner, SparkCulture provides:
+
+- **Partner identity and category** from Qloo's recommendation results.
+- **Overlap indicator.** If the result includes a numeric Qloo affinity/score, it is displayed on a 0–100 scale. Otherwise, the UI uses `qloo_rank_proxy`, a relative position within that category's current results. A rank proxy is not a measured affinity and is not directly comparable across categories.
+- **Collaboration thesis** and **product blueprint** describing one possible activation.
+- **Illustrative financial scenario** containing assumed units, retail price, gross revenue, production cost, launch budget, and contribution before partner split.
+
+**The financial scenarios are planning aids, not market research, a forecast, or Qloo data.** They use fixed assumptions by partner category; they are not calculated from the matched entity, a submitted budget, or observed demand. Collaboration copy is a structured concept generated by the application, not a Qloo recommendation.
+
+## API
+
+### `POST /api/analyze-ip`
+
+Request:
+
+```json
+{
+  "title": "Cyberpunk 2077",
+  "vertical": "video_game",
+  "description": "Neon-soaked science fiction, independent music, and streetwear"
+}
+```
+
+`description` is optional. Supported `vertical` values are `video_game`, `movie`, `tv_show`, `podcast`, `artist`, `brand`, and `book`. Titles must be 2–160 characters; descriptions may contain up to 1,200 characters.
+
+The JSON response includes:
+
+- `source_entity`: Qloo entity ID, resolved name, and source category.
+- `resolved_tags`: Qloo tag IDs and names (empty if no tags were requested or resolved).
+- `partners`: Qloo matches across music, fashion, and dining, with score basis, collaboration concept, product blueprint, and pro forma.
+- `financial_assumptions`: a reminder of the limits of the financial scenarios.
+
+Example:
+
+```bash
+curl --fail-with-body http://localhost:3000/api/analyze-ip \
+  -H 'Content-Type: application/json' \
+  -d '{"title":"Cyberpunk 2077","vertical":"video_game"}'
+```
+
+### `GET /api/health`
+
+Returns `{"status":"ok"}` when the backend is running. The backend validates required configuration on startup, including the Qloo key.
+
+FastAPI also exposes interactive API documentation at [http://localhost:8000/docs](http://localhost:8000/docs).
+
+## Architecture
+
+```text
+Browser
+  │  same-origin /api/*
+  ▼
+Next.js 15 app ── rewrite (BACKEND_INTERNAL_URL) ──► FastAPI
+                                                        │
+                                                        │ X-Api-Key
+                                                        ▼
+                                          Qloo Hackathon API
+                                          /search
+                                          /v2/tags (optional)
+                                          /v2/insights × 3
+```
+
+- **Frontend:** Next.js App Router, React, TypeScript, Tailwind CSS, and Lucide icons.
+- **Backend:** Python 3.11+, FastAPI, Pydantic, and asynchronous HTTPX.
+- **Qloo flow:** `/search` resolves the source entity; optional `/v2/tags` resolves description context; three parallel `/v2/insights` requests look for partner entities.
+- **Browser-to-backend routing:** the browser uses a same-origin route. Next.js forwards it server-side to `BACKEND_INTERNAL_URL`, avoiding hard-coded client API hosts and mixed-content issues with forwarded HTTPS ports.
+
+## Configuration
+
+Copy [`backend/.env.example`](backend/.env.example) to `backend/.env`:
+
+| Variable | Required | Default | Purpose |
+| --- | --- | --- | --- |
+| `QLOO_API_KEY` | Yes | — | Server-only key sent to Qloo in the `X-Api-Key` header. |
+| `QLOO_BASE_URL` | No | `https://hackathon.api.qloo.com` | Qloo request host. Must remain the official hackathon host. |
+| `QLOO_TRUSTED_BASE_URL` | No | `https://hackathon.api.qloo.com` | Trusted outbound Qloo host. Must remain the official hackathon host. |
+| `FRONTEND_ORIGIN` | No | `http://localhost:3000` | Allowed browser origin(s), comma-separated. |
+
+The frontend rewrite uses the server-side `BACKEND_INTERNAL_URL` variable, defaulting to `http://127.0.0.1:8000`. In a deployment, set it to a backend address reachable **from the Next.js server**. Set `FRONTEND_ORIGIN` to the browser-visible frontend origin(s) when direct cross-origin backend access is needed.
+
+The backend rejects Qloo base URL overrides that do not exactly match the hackathon API host. Hackathon credentials do not work on Qloo's production or staging hosts.
+
+## Errors and troubleshooting
+
+| Symptom | Check |
+| --- | --- |
+| Backend exits at startup with missing `QLOO_API_KEY` | Create `backend/.env` from `.env.example` and add your hackathon key. |
+| Qloo returns `401` | Verify the key is active and the request targets `https://hackathon.api.qloo.com`; the backend sends it as `X-Api-Key`. |
+| `404` for an IP | Check the title and selected vertical. Search results are resolved by Qloo, and an unmatched title is not replaced with sample data. |
+| `502` or `504` during analysis | Check Qloo availability, key access for the requested entity types, network connectivity, and request inputs; the backend surfaces upstream failures. |
+| Frontend cannot reach the backend | Confirm FastAPI is listening on port 8000 and `BACKEND_INTERNAL_URL` points to an address reachable from the Next.js server. |
+| No tag chips appear | Description tags are optional; try adding concise context and submit again. Qloo may return no matching tags. |
+
+## Validation
+
+From the frontend directory:
+
+```bash
+npm run lint
+npm run build
+npm audit --omit=dev
+```
+
+Check backend syntax from the repository root:
+
+```bash
+python -m py_compile backend/main.py
+```
+
+## Security and data handling
+
+- Keep `QLOO_API_KEY` exclusively in the backend environment. It is never sent to the browser.
+- Do not commit `backend/.env`; it is ignored by Git. Provide secrets through the deployment platform's secret manager in hosted environments.
+- Qloo calls use the official hackathon host and the documented `/search`, `/v2/tags`, and `/v2/insights` endpoints.
+- The backend disables redirects on its outbound HTTP client and uses a bounded request timeout.
+
+## Project structure
+
+```text
+.devcontainer/       Codespaces Python, Node.js, and port configuration
+backend/
+  .env.example       Safe environment-variable template
+  main.py            FastAPI application and Qloo integration
+  requirements.txt   Python dependencies
+frontend/
+  app/               Next.js dashboard, layout, and global styles
+  next.config.ts     Same-origin API rewrite
+  package.json       Frontend scripts and dependencies
+```
