@@ -104,13 +104,25 @@ export default function Home() {
           ...(input.description?.trim() ? { description: input.description.trim() } : {}),
         }),
       });
-      const payload: unknown = await response.json();
+      const responseText = await response.text();
+      let payload: unknown;
+      try {
+        payload = JSON.parse(responseText);
+      } catch {
+        const snippet = responseText.replace(/\s+/g, " ").trim().slice(0, 200);
+        throw new Error(
+          `Request failed with status ${response.status}: the server returned a non-JSON response${snippet ? ` (${snippet})` : ""}.`,
+        );
+      }
       if (!response.ok) {
         const detail =
           typeof payload === "object" && payload !== null && "detail" in payload
             ? String(payload.detail)
             : "The analysis could not be completed.";
-        throw new Error(detail);
+        const snippet = responseText.replace(/\s+/g, " ").trim().slice(0, 200);
+        throw new Error(
+          `Request failed with status ${response.status}: ${detail}${snippet ? ` Response: ${snippet}` : ""}`,
+        );
       }
       setAnalysis(payload as Analysis);
     } catch (caught) {

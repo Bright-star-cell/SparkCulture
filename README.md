@@ -50,7 +50,8 @@ Environment Variable Reference
 | QLOO_API_KEY | Yes | — | Personal hackathon API key issued by Qloo. |
 | QLOO_BASE_URL | Yes | https://hackathon.api.qloo.com | Target API host. Note: Hackathon keys do not work on production/staging hosts. |
 | QLOO_TRUSTED_BASE_URL | No | https://hackathon.api.qloo.com | Trusted outbound host enforcing official hackathon routing. |
-| BACKEND_INTERNAL_URL | No | http://127.0.0.1:8000 | Internal backend route reachable by the Next.js server. |
+| BACKEND_INTERNAL_URL | No | http://127.0.0.1:8000 in development | Preferred backend URL reachable by the Next.js server. In production, configure this or `BACKEND_URL`. |
+| BACKEND_URL | No | — | Alternate backend URL for the Next.js Route Handler. |
 | FRONTEND_ORIGIN | No | http://localhost:3000 | Allowed browser origin(s), comma-separated. |
 
 ---
@@ -80,6 +81,8 @@ npm install
 npm run dev
 ```
 
+The frontend proxies `POST /api/analyze-ip` through a Next.js Route Handler to FastAPI. For production, set `BACKEND_INTERNAL_URL` or `BACKEND_URL` to the backend address reachable from the Next.js server. When neither is set, the Route Handler uses `http://127.0.0.1:8000` only outside production; upstream failures are returned as JSON.
+
 ### 🧪 Validation & Quality Checks
 Run the automated QA suites to ensure code health before deployment:
 Frontend Validation (from /frontend)
@@ -103,7 +106,7 @@ python backend/test_api.py
 | Qloo returns 401 Unauthorized | Invalid key or incorrect target host. | Verify key is active and requests target https://hackathon.api.qloo.com. The backend sends it via X-Api-Key. |
 | 404 for a searched IP | Unresolved entity title. | Check title and vertical. Search results are resolved dynamically by Qloo; unmatched titles are not silently mocked. |
 | 502 or 504 Gateway Error | Upstream Qloo timeout or service hitch. | Check Qloo API status, key permissions for requested entity types, network connectivity, and request payload structure. |
-| Frontend cannot reach backend | Internal routing mismatch. | Confirm FastAPI is listening on port 8000 and BACKEND_INTERNAL_URL points to an address reachable from the Next.js server. |
+| Frontend cannot reach backend | Internal routing mismatch. | Confirm FastAPI is listening on port 8000 and `BACKEND_INTERNAL_URL` or `BACKEND_URL` points to an address reachable from the Next.js server. |
 | No tag chips appear | Empty metadata response. | Description tags are optional; try adding concise context and re-submitting. |
 
 ```
@@ -126,10 +129,10 @@ backend/
   └── requirements.txt # Pinned Python dependencies
 frontend/
   ├── app/           # Next.js 15 App Router dashboard, layout, & styling
-  ├── next.config.ts # Same-origin API rewrite & proxy configurations
+  ├── next.config.ts # Next.js configuration
+  ├── app/api/       # Same-origin backend proxy Route Handlers
   └── package.json   # Frontend scripts & dependency manifests
 ```
 
 ## 📜 License
 Distributed under the MIT License. See LICENSE file for details. Built for the Qloo Agentic Hackathon 2026.
-
