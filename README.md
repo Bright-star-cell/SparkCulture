@@ -15,11 +15,11 @@ By wiring autonomous agent workflows directly into Qloo’s taste graph, SparkCu
 
 ---
 
-## 🏗️ System Architecture
+### 🌴 System Architecture
 
-SparkCulture is engineered as a robust, decoupled monorepo optimized for low-latency execution and strict zero-trust security:
+SparkCulture is engineered as a robust, decoupled monorepo optimized for low-latency execution and strict zero-trust security.
 
-
+```mermaid
 graph TD
     subgraph Client Tier [Vercel Deployment]
         User[User / Browser] -->|HTTPS UI Request| NextJS[Next.js Frontend <br/> Bloomberg Terminal UI & Tailwind CSS]
@@ -40,7 +40,7 @@ graph TD
     style NextJS fill:#161b22,stroke:#38bdf8,color:#f0f6fc
     style FastAPI fill:#161b22,stroke:#a3e635,color:#f0f6fc
     style Qloo fill:#161b22,stroke:#f43f5e,color:#f0f6fc
-    
+```
 ---
 
 ## ⚙️ Environment Configuration
