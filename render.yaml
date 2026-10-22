@@ -2,9 +2,7 @@ services:
   - type: web
     name: sparkculture-backend
     runtime: docker
-    rootDir: backend
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: QLOO_BASE_URL
         value: https://hackathon.api.qloo.com
