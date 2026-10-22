@@ -11,7 +11,7 @@ import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
 
 HACKATHON_BASE_URL = "https://hackathon.api.qloo.com"
@@ -36,9 +36,28 @@ PARTNER_VERTICALS = (
 class AnalyzeRequest(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
-    title: str = Field(min_length=2, max_length=160)
+    title: str = Field(
+        min_length=2,
+        max_length=160,
+        validation_alias=AliasChoices("title", "ip_name"),
+    )
     vertical: str
     description: str | None = Field(default=None, max_length=1200)
+
+    @field_validator("vertical")
+    @classmethod
+    def normalize_vertical(cls, value: str) -> str:
+        aliases = {
+            "film": "movie",
+            "film/sci-fi": "movie",
+            "sci-fi": "movie",
+            "gaming": "video_game",
+            "video game": "video_game",
+            "tv": "tv_show",
+        }
+        normalized = value.strip().lower()
+        return aliases.get(normalized, normalized)
+
 
 class ResolvedTag(BaseModel):
     id: str

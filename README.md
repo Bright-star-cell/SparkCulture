@@ -89,13 +89,12 @@ Request:
 
 ```json
 {
-  "title": "Cyberpunk 2077",
-  "vertical": "video_game",
-  "description": "Neon-soaked science fiction, independent music, and streetwear"
+  "ip_name": "Blade Runner",
+  "vertical": "Film/Sci-Fi"
 }
 ```
 
-`description` is optional. Supported `vertical` values are `video_game`, `movie`, `tv_show`, `podcast`, `artist`, `brand`, and `book`. Titles must be 2–160 characters; descriptions may contain up to 1,200 characters.
+`ip_name` is accepted as an alias for `title`. Human-friendly vertical aliases include `Film`, `Film/Sci-Fi`, `Sci-Fi`, `Gaming`, `Video Game`, and `TV`; canonical values are `video_game`, `movie`, `tv_show`, `podcast`, `artist`, `brand`, and `book`. `description` is optional. Titles must be 2–160 characters; descriptions may contain up to 1,200 characters.
 
 The JSON response includes:
 
@@ -109,8 +108,85 @@ Example:
 ```bash
 curl --fail-with-body http://localhost:3000/api/analyze-ip \
   -H 'Content-Type: application/json' \
-  -d '{"title":"Cyberpunk 2077","vertical":"video_game"}'
+  -d '{"ip_name":"Blade Runner","vertical":"Film/Sci-Fi"}'
 ```
+
+The request is normalized internally to `title: "Blade Runner"` and `vertical: "movie"` before Qloo entity search.
+
+## 🧪 Verification & Test Results
+
+**Execution time:** 2026-10-22 03:52 UTC<br>
+**Environment:** Linux Codespaces workspace. The checked-in dev container targets Python 3.11 and Node.js 20; the active test shell reported Python 3.14.2, Node.js 24.21.0, and npm 11.19.0.
+
+| Check | Result | Details |
+| --- | --- | --- |
+| Backend endpoint and configuration suite | **PASS** | `python backend/test_api.py` — 4 tests passed, including request normalization, structured response fields, hackathon URL/key-header configuration, and invalid vertical rejection. |
+| Frontend production build | **PASS** | `cd frontend && npm run build` — Next.js 15.5.28 compiled, type-checked, and generated static pages successfully. |
+| Frontend lint | **PASS** | `cd frontend && npm run lint` — no lint errors or warnings. |
+| Official Qloo host reachability | **REACHABLE · AUTH REQUIRED** | TLS verification succeeded for `https://hackathon.api.qloo.com`; an unauthenticated request returned HTTP 401, as expected without a key. |
+| Authenticated live Qloo analysis | **NOT RUN** | `python backend/test_api.py --live` found no configured `QLOO_API_KEY` and sent no authenticated request. A successful live analysis cannot be claimed until a key is supplied. |
+
+The backend tests use a local Qloo HTTP fixture to verify request routing and response parsing without consuming credentials or depending on an external service. Their sample preview is **test fixture data, not live Qloo results**:
+
+**Request**
+
+```json
+{
+  "ip_name": "Blade Runner",
+  "vertical": "Film/Sci-Fi"
+}
+```
+
+**Abbreviated local fixture response**
+
+```json
+{
+  "source_entity": {
+    "id": "fixture-source-001",
+    "name": "Blade Runner",
+    "vertical": "Film"
+  },
+  "resolved_tags": [],
+  "partners": [
+    {
+      "id": "fixture-artist-001",
+      "name": "Fixture artist partner",
+      "vertical": "music",
+      "affinity_score": 82.0,
+      "score_basis": "qloo_affinity"
+    },
+    {
+      "id": "fixture-brand-001",
+      "name": "Fixture brand partner",
+      "vertical": "fashion",
+      "affinity_score": 82.0,
+      "score_basis": "qloo_affinity"
+    },
+    {
+      "id": "fixture-place-001",
+      "name": "Fixture place partner",
+      "vertical": "dining",
+      "affinity_score": 82.0,
+      "score_basis": "qloo_affinity"
+    }
+  ],
+  "financial_assumptions": "Financial pro formas are transparent illustrative scenarios, not Qloo measurements, market research, or guaranteed forecasts."
+}
+```
+
+Run the deterministic local suite with:
+
+```bash
+python backend/test_api.py
+```
+
+When `QLOO_API_KEY` is available in `backend/.env` or the environment, run the additional authenticated request through the local FastAPI endpoint with:
+
+```bash
+python backend/test_api.py --live
+```
+
+The live check validates the configured Qloo host and reports a compact response preview. It does not print the API key.
 
 ### `GET /api/health`
 
@@ -179,6 +255,7 @@ Check backend syntax from the repository root:
 
 ```bash
 python -m py_compile backend/main.py
+python backend/test_api.py
 ```
 
 ## Security and data handling
@@ -195,6 +272,7 @@ python -m py_compile backend/main.py
 backend/
   .env.example       Safe environment-variable template
   main.py            FastAPI application and Qloo integration
+  test_api.py        Local endpoint tests and optional live Qloo smoke test
   requirements.txt   Python dependencies
 frontend/
   app/               Next.js dashboard, layout, and global styles
