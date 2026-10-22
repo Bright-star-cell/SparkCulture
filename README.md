@@ -114,7 +114,7 @@ python backend/test_api.py
 
 ### 🔍 Troubleshooting Guide
 
-```
+
 | Symptom | Root Cause / Check | Solution |
 |---|---|---|
 | Backend exits at startup | Missing QLOO_API_KEY. | Create backend/.env from .env.example and insert your active hackathon key. |
@@ -124,7 +124,7 @@ python backend/test_api.py
 | Frontend cannot reach backend | Internal routing mismatch. | Confirm FastAPI is listening on port 8000 and `BACKEND_INTERNAL_URL` or `BACKEND_URL` points to an address reachable from the Next.js server. |
 | No tag chips appear | Empty metadata response. | Description tags are optional; try adding concise context and re-submitting. |
 
-```
+
 
 ### 🔒 Security & Data Compliance
  * Zero Client-Side Exposure: The QLOO_API_KEY lives exclusively in the backend environment. It is never transmitted to the browser or client application.
