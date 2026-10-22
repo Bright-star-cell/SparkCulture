@@ -52,9 +52,9 @@ Create your environment file based on the safe template (`backend/.env.example`)
 
 ```env
 QLOO_API_KEY=your_hackathon_api_key_here
-QLOO_BASE_URL=[https://hackathon.api.qloo.com](https://hackathon.api.qloo.com)
-QLOO_TRUSTED_BASE_URL=[https://hackathon.api.qloo.com](https://hackathon.api.qloo.com)
-BACKEND_INTERNAL_URL=[http://127.0.0.1:8000](http://127.0.0.1:8000)
+QLOO_BASE_URL=https://hackathon.api.qloo.com
+QLOO_TRUSTED_BASE_URL=https://hackathon.api.qloo.com
+BACKEND_INTERNAL_URL=http://127.0.0.1:8000
 FRONTEND_ORIGIN=http://localhost:3000
 
 ```
