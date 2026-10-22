@@ -20,12 +20,27 @@ By wiring autonomous agent workflows directly into Qloo’s taste graph, SparkCu
 SparkCulture is engineered as a robust, decoupled monorepo optimized for low-latency execution and strict zero-trust security:
 
 
-┌─────────────────────────┐          ┌─────────────────────────┐          ┌─────────────────────────┐
-│   Next.js 15 Frontend   │ ───────> │  Python FastAPI Backend │ ───────> │   Qloo Hackathon API    │
-│   (Bloomberg Terminal   │  (Proxy) │  (Agentic Orchestration │          │   (250M+ Taste Graph)   │
-│    UI & Tailwind CSS)   │          │   & Entity Resolution)  │          │                         │
-└─────────────────────────┘          └─────────────────────────┘          └─────────────────────────┘
+graph TD
+    subgraph Client Tier [Vercel Deployment]
+        User[User / Browser] -->|HTTPS UI Request| NextJS[Next.js Frontend <br/> Bloomberg Terminal UI & Tailwind CSS]
+    end
 
+    subgraph Backend Tier [Render Docker PaaS]
+        NextJS -->|Secure API Proxy| FastAPI[Python FastAPI Backend <br/> Agentic Orchestration & Entity Resolution]
+    end
+
+    subgraph External Intelligence Tier [Zero-Trust Boundary]
+        FastAPI -->|Secured QLOO_API_KEY <br/> Server-to-Server Call| Qloo[Qloo Hackathon API <br/> 250M+ Taste Graph]
+    end
+
+    style Client Tier fill:#0d1117,stroke:#30363d,stroke-width:2px,color:#f0f6fc
+    style Backend Tier fill:#0d1117,stroke:#30363d,stroke-width:2px,color:#f0f6fc
+    style External Intelligence Tier fill:#0d1117,stroke:#30363d,stroke-width:2px,color:#f0f6fc
+    style User fill:#161b22,stroke:#8b5cf6,color:#f0f6fc
+    style NextJS fill:#161b22,stroke:#38bdf8,color:#f0f6fc
+    style FastAPI fill:#161b22,stroke:#a3e635,color:#f0f6fc
+    style Qloo fill:#161b22,stroke:#f43f5e,color:#f0f6fc
+    
 ---
 
 ## ⚙️ Environment Configuration
