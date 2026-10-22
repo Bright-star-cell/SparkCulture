@@ -128,7 +128,7 @@ python backend/test_api.py
 
 ### 🔒 Security & Data Compliance
  * Zero Client-Side Exposure: The QLOO_API_KEY lives exclusively in the backend environment. It is never transmitted to the browser or client application.
- * Git Safety: backend/.env is strictly ignored by .gitignore. In hosted environments (e.g., Railway), secrets are securely injected via the platform's native secret manager.
+ * Git Safety: backend/.env is strictly ignored by .gitignore. In hosted environments (e.g., Render), secrets are securely injected via the platform's native secret manager.
  * Official Endpoints Only: All outbound calls use the official hackathon host (https://hackathon.api.qloo.com) and target documented endpoints (/search, /v2/tags, /v2/insights).
  * Resilient Outbound Transport: The backend disables automatic redirects on its outbound HTTP client and enforces strict bounded request timeouts to prevent hanging threads.
 
