@@ -6,7 +6,10 @@ function getBackendUrl() {
   const configuredUrl =
     process.env.BACKEND_INTERNAL_URL?.trim() || process.env.BACKEND_URL?.trim();
   if (configuredUrl) {
-    return `${configuredUrl.replace(/\/+$/, "")}/api/analyze-ip`;
+    const backendOrigin = /^https?:\/\//i.test(configuredUrl)
+      ? configuredUrl
+      : `https://${configuredUrl}`;
+    return `${backendOrigin.replace(/\/+$/, "")}/api/analyze-ip`;
   }
 
   if (process.env.NODE_ENV !== "production") {
