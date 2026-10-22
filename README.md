@@ -83,8 +83,8 @@ cd backend
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-export QLOO_BASE_URL=[https://hackathon.api.qloo.com](https://hackathon.api.qloo.com)
-export QLOO_TRUSTED_BASE_URL=[https://hackathon.api.qloo.com](https://hackathon.api.qloo.com)
+export QLOO_BASE_URL=https://hackathon.api.qloo.com
+export QLOO_TRUSTED_BASE_URL=https://hackathon.api.qloo.com
 uvicorn main:app --reload --port 8000
 ```
 
