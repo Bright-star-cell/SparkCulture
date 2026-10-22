@@ -65,9 +65,9 @@ Environment Variable Reference
 | QLOO_API_KEY | Yes | — | Personal hackathon API key issued by Qloo. |
 | QLOO_BASE_URL | Yes | https://hackathon.api.qloo.com | Target API host. Note: Hackathon keys do not work on production/staging hosts. |
 | QLOO_TRUSTED_BASE_URL | No | https://hackathon.api.qloo.com | Trusted outbound host enforcing official hackathon routing. |
-| BACKEND_INTERNAL_URL | No | http://127.0.0.1:8000 in development | Preferred backend URL reachable by the Next.js server. In production, configure this or `BACKEND_URL`. |
-| BACKEND_URL | No | https://sparkculture.onrender.com/ | Alternate backend URL for the Next.js Route Handler. |
-| FRONTEND_ORIGIN | No | https://spark-culture.vercel.app/ | Allowed browser origin(s), comma-separated. |
+| BACKEND_INTERNAL_URL | Yes | http://127.0.0.1:8000 in development | Preferred backend URL reachable by the Next.js server. In production, configure this or `BACKEND_URL`. |
+| BACKEND_URL | Yes | https://sparkculture.onrender.com/ | Alternate backend URL for the Next.js Route Handler. |
+| FRONTEND_ORIGIN | Yes | https://spark-culture.vercel.app/ | Allowed browser origin(s), comma-separated. |
 
 ---
 
